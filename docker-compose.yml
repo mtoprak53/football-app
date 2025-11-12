@@ -7,12 +7,9 @@ services:
       - .:/app
       - /app/node_modules
     environment:
-      - DB_HOST=football-app-db-1
-      - DB_PORT=5432
-      - DB_NAME=football
-      - DB_USER=postgres
-      - DB_PASSWORD=mysecretpassword
+      - DATABASE_URL=${DATABASE_URL}
       - API_FOOTBALL_KEY=${API_FOOTBALL_KEY}
+      - NODE_ENV=development
     depends_on:
       - db
     networks:
@@ -33,11 +30,7 @@ services:
       context: .
       dockerfile: cron-job/Dockerfile
     environment:
-      - DB_HOST=football-app-db-1
-      - DB_PORT=5432
-      - DB_NAME=football
-      - DB_USER=postgres
-      - DB_PASSWORD=mysecretpassword
+      - DATABASE_URL=${DATABASE_URL}
       - API_FOOTBALL_KEY=${API_FOOTBALL_KEY}
     depends_on:
       - db
@@ -46,5 +39,4 @@ services:
 
 networks:
   football-network:
-    name: football-app_football-network
     driver: bridge
