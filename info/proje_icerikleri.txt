@@ -1,0 +1,1474 @@
+=== PROJE DOSYALARI İÇERİKLERİ ===
+Oluşturma Tarihi: Wed Dec 10 07:57:58 PM EST 2025
+=====================================
+
+Hariç tutulan dizinler: no_git node_modules .next
+Hariç tutulan dosyalar: .env .env.local .env.development .env.production package-lock.json
+
+Önemli dosyalar işleniyor...
+Ekleniyor: next.config.js
+
+========================================
+DOSYA: next.config.js
+Boyut: 12 satır
+========================================
+
+/** @type {import('next').NextConfig} */
+
+const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['pg'],
+  },
+  env: {
+    API_FOOTBALL_KEY: process.env.API_FOOTBALL_KEY,
+    API_FOOTBALL_HOST: 'api-football-v1.p.rapidapi.com'
+  }
+}
+
+module.exports = nextConfig
+Ekleniyor: vercel.json
+
+========================================
+DOSYA: vercel.json
+Boyut: 14 satır
+========================================
+
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/update-countries",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
+Ekleniyor: package.json
+
+========================================
+DOSYA: package.json
+Boyut: 38 satır
+========================================
+
+{
+  "name": "football-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "dev:docker": "docker compose up --build",
+    "dev:watch": "docker compose up app --build",
+    "build": "next build",
+    "start": "next start",
+    "start:docker": "docker compose up",
+    "restart:docker": "docker compose down && docker compose up --build",
+    "down:docker": "docker compose down",
+
+    "db:local": "docker compose up db -d",
+    "db:logs": "docker compose logs db -f",
+    "clean:docker": "docker compose down -v --remove-orphans",
+    "production:build": "NODE_ENV=production npm run build",
+    "update-countries": "node scripts/update-countries.js",
+    
+    "db:setup": "docker compose exec -T db psql -U postgres -d football -f /database/setup.sql",
+    "db:reset": "docker compose down -v && docker compose up -d --wait && sleep 5 && npm run db:setup",
+    "db:shell": "docker compose exec db psql -U postgres -d football",
+    "db:tables": "npm run db:shell -- -c \"\\dt\"",
+    "db:teams": "npm run db:shell -- -c \"SELECT id, name, country FROM teams ORDER BY name\"",
+    "db:count": "npm run db:shell -- -c \"SELECT COUNT(*) as total_teams FROM teams\"",
+    "db:clean": "docker compose down -v",
+    
+    "migrate:copy-sql": "docker compose cp database/setup.sql db:/database/setup.sql",
+    "migrate:run": "npm run migrate:copy-sql && npm run db:setup"
+  },
+  "dependencies": {
+    "next": "14.2.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "pg": "^8.16.3",
+    "dotenv": "^16.3.1"
+  }
+}
+
+Ekleniyor: README.md
+
+========================================
+DOSYA: README.md
+Boyut: 270 satır
+========================================
+
+
+<span id="ENG"></span>
+
+# ⚽ Football App
+
+[Türkçe](#TUR)
+
+
+A modern football application with real-time match data, team information, and league standings. Built with Docker, Next.js 14, PostgreSQL, and API-Football integration.
+
+![Docker](https://img.shields.io/badge/Docker-✓-blue)
+![NextJS](https://img.shields.io/badge/NextJS-✓-black)
+![React](https://img.shields.io/badge/React-✓-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-✓-blue)
+![Vercel](https://img.shields.io/badge/Vercel_Deploy-✓-black)
+
+## ✨ Features
+
+- **🏆 Real-time Data**: Live league and team information via API-Football
+- **🐳 Docker Containerization**: Entire app runs in Docker containers
+- **🗄️ Cloud PostgreSQL**: Neon.tech cloud database with local backup
+- **⚡ Next.js 14**: Latest App Router, Server Components, API Routes
+- **⏰ Automated Sync**: Daily cron jobs for data synchronization
+- **🚀 Production Ready**: Vercel deployment with CI/CD pipeline
+
+## 🛠️ Tech Stack
+
+**Frontend & Backend:**
+- Next.js 14 + React 18
+- API Routes + Server Components
+- Tailwind CSS (optional)
+
+**Database:**
+- PostgreSQL (Primary: Neon.tech, Backup: Local Docker)
+- pg node.js driver
+
+**DevOps & Infrastructure:**
+- Docker + Docker Compose
+- GitHub Actions CI/CD
+- Vercel Deployment
+- Cron Jobs for automation
+
+**APIs:**
+- API-Football (https://www.api-football.com/)
+
+## 📦 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- Docker & Docker Compose
+- API-Football account (free tier available)
+
+### Installation
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/mtoprak53/football-app.git
+cd football-app
+```
+
+2. **Set up environment variables:**
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+3. **Run with Docker (Recommended):**
+```bash
+docker compose up --build -d
+```
+
+4. **Access the application:**
+- Frontend: http://localhost:3000
+- API: http://localhost:3000/api/football/ligler
+
+### Environment Variables
+```env
+DATABASE_URL=postgresql://user:pass@neon-host/db?sslmode=require
+API_FOOTBALL_KEY=your_api_football_key_here
+```
+
+## 🏗️ Project Structure
+```
+football-app/
+├── app/                 # Next.js App Router
+│   ├── api/            # API Routes
+│   │   └── football/   # Football API endpoints
+│   └── page.js         # Main page
+├── lib/                # Utilities & database
+├── scripts/            # Cron job scripts
+├── cron-job/           # Docker cron container
+├── docker-compose.yml  # Multi-container setup
+└── Dockerfile          # Next.js container
+```
+
+## 🔄 API Endpoints
+
+- `GET /api/football/ligler` - Get Turkish leagues
+- `GET /api/football/countries` - Get countries data
+- `GET /api/cron/update-countries` - Manual data sync (cron)
+
+## 🐳 Docker Services
+
+- **app**: Next.js application (port 3000)
+- **db**: PostgreSQL database (port 5433)
+- **cron-job**: Automated data synchronization
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+1. Fork this repository
+2. Connect to Vercel
+3. Set environment variables in Vercel dashboard
+4. Deploy automatically on git push
+
+### Manual Vercel Deploy
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [API-Football](https://www.api-football.com/) for sports data
+- [Vercel](https://vercel.com) for hosting
+- [Neon.tech](https://neon.tech) for PostgreSQL hosting
+
+---
+
+**⭐ If you liked this project, don't forget to give it a star!**
+
+---
+
+
+
+<span id="TUR"></span>
+
+# ⚽ Futbol Uygulaması
+
+[English](#ENG)
+
+Gerçek zamanlı maç verileri, takım bilgileri ve lig sıralamaları içeren modern bir futbol uygulaması. Docker, Next.js 14, PostgreSQL ve API-Football entegrasyonu ile geliştirilmiştir.
+
+![Docker](https://img.shields.io/badge/Docker-✓-blue)
+![NextJS](https://img.shields.io/badge/NextJS-✓-black)
+![React](https://img.shields.io/badge/React-✓-black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-✓-blue)
+![Vercel](https://img.shields.io/badge/Vercel_Deploy-✓-black)
+
+## ✨ Özellikler
+
+- **🏆 Gerçek Zamanlı Veriler**: API-Football ile canlı lig ve takım bilgileri
+- **🐳 Docker Containerization**: Tüm uygulama Docker container'larında çalışır
+- **🗄️ Cloud PostgreSQL**: Neon.tek cloud veritabanı + local yedek
+- **⚡ Next.js 14**: En son App Router, Server Components, API Routes
+- **⏰ Otomatik Senkronizasyon**: Günlük cron job'lar ile veri senkronizasyonu
+- **🚀 Production Hazır**: CI/CD pipeline ile Vercel deployment
+
+## 🛠️ Teknoloji Stack
+
+**Frontend & Backend:**
+- Next.js 14 + React 18
+- API Routes + Server Components
+- Tailwind CSS (opsiyonel)
+
+**Veritabanı:**
+- PostgreSQL (Ana: Neon.tech, Yedek: Local Docker)
+- pg node.js driver
+
+**DevOps & Altyapı:**
+- Docker + Docker Compose
+- GitHub Actions CI/CD
+- Vercel Deployment
+- Cron Jobs ile otomasyon
+
+**API'ler:**
+- API-Football (https://www.api-football.com/)
+
+## 📦 Hızlı Başlangıç
+
+### Gereksinimler
+- Node.js 18+
+- Docker & Docker Compose
+- API-Football hesabı (ücretsiz tier mevcut)
+
+### Kurulum
+
+1. **Repository'yi klonlayın:**
+```bash
+git clone https://github.com/mtoprak53/football-app.git
+cd football-app
+```
+
+2. **Environment variables'ı ayarlayın:**
+```bash
+cp .env.example .env
+# .env dosyasını düzenleyin
+```
+
+3. **Docker ile çalıştırın (Önerilen):**
+```bash
+docker compose up --build -d
+```
+
+4. **Uygulamaya erişin:**
+- Frontend: http://localhost:3000
+- API: http://localhost:3000/api/football/ligler
+
+### Environment Variables
+```env
+DATABASE_URL=postgresql://user:pass@neon-host/db?sslmode=require
+API_FOOTBALL_KEY=api_football_anahtarınız
+```
+
+## 🏗️ Proje Yapısı
+```
+football-app/
+├── app/                 # Next.js App Router
+│   ├── api/            # API Routes
+│   │   └── football/   # Football API endpoint'leri
+│   └── page.js         # Ana sayfa
+├── lib/                # Utilities & veritabanı
+├── scripts/            # Cron job script'leri
+├── cron-job/           # Docker cron container
+├── docker-compose.yml  # Multi-container setup
+└── Dockerfile          # Next.js container
+```
+
+## 🔄 API Endpoint'leri
+
+- `GET /api/football/ligler` - Türkiye liglerini getir
+- `GET /api/football/countries` - Ülke verilerini getir
+- `GET /api/cron/update-countries` - Manuel veri senkronizasyonu (cron)
+
+## 🐳 Docker Servisleri
+
+- **app**: Next.js uygulaması (port 3000)
+- **db**: PostgreSQL veritabanı (port 5433)
+- **cron-job**: Otomatik veri senkronizasyonu
+
+## 🚀 Deployment
+
+### Vercel (Önerilen)
+1. Bu repository'yi fork edin
+2. Vercel'e bağlayın
+3. Environment variables'ı Vercel dashboard'da ayarlayın
+4. Git push'ta otomatik deploy
+
+### Manuel Vercel Deploy
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır - detaylar için [LICENSE](LICENSE) dosyasına bakın.
+
+## 🙏 Teşekkürler
+
+- Spor verileri için [API-Football](https://www.api-football.com/)
+- Hosting için [Vercel](https://vercel.com)
+- PostgreSQL hosting için [Neon.tech](https://neon.tech)
+
+---
+
+**⭐ Eğer bu projeyi beğendiyseniz, yıldız vermeyi unutmayın!**
+Ekleniyor: LICENSE
+
+========================================
+DOSYA: LICENSE
+Boyut: 20 satır
+========================================
+
+MIT License
+
+Copyright (c) 2025 Mehmet Toprak
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+Ekleniyor: docker-compose.yml
+
+========================================
+DOSYA: docker-compose.yml
+Boyut: 60 satır
+========================================
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./database:/database:ro  # 👈 SQL script'leri için
+    env_file:
+      - .env.development
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - football-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: football
+      POSTGRES_USER: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # 👈 BU SATIR ÖNEMLİ!
+      - ./database:/database:ro  # 👈 SQL script'leri için
+    networks:
+      - football-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  cron-job:
+    build: 
+      context: .
+      dockerfile: cron-job/Dockerfile
+    env_file:
+      - .env.development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - football-network
+    restart: unless-stopped
+
+# 👇 BU BÖLÜM MUTLAKA OLMALI!
+networks:
+  football-network:
+    driver: bridge
+
+volumes:
+  postgres_data:  # 👈 BU TANIM MUTLAKA OLMALI!
+    driver: local
+Ekleniyor: dockerfile
+
+========================================
+DOSYA: dockerfile
+Boyut: 7 satır
+========================================
+
+FROM node:18-bullseye
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+Ekleniyor: .env.example
+
+========================================
+DOSYA: .env.example
+Boyut: 14 satır
+========================================
+
+# 🛠️ DEVELOPMENT (Docker)
+DB_HOST=football-db
+DB_PORT=5432
+DB_NAME=football
+DB_USER=postgres
+DB_PASSWORD=mysecretpassword
+
+# 🚀 PRODUCTION (Neon.tech)
+DATABASE_URL=postgresql://user:password@neon-host/db?sslmode=require
+
+# 🏆 API-FOOTBALL (Both)
+API_FOOTBALL_KEY=your_api_football_key_here
+
+# 🔐 PRODUCTION ONLY
+CRON_SECRET=your_cron_secret_here
+Ekleniyor: app/layout.js
+
+========================================
+DOSYA: app/layout.js
+Boyut: 6 satır
+========================================
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="tr">
+      <body>{children}</body>
+    </html>
+  );
+}
+Ekleniyor: app/page.js
+
+========================================
+DOSYA: app/page.js
+Boyut: 116 satır
+========================================
+
+import Link from 'next/link';
+
+async function getLeagues() {
+  try {
+    const res = await fetch('http://localhost:3000/api/football/ligler', {
+      cache: 'no-store'
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Ligler API hatası:', error);
+    return { success: false, ligler: [] }; // Eski yapıyı koru
+  }
+}
+
+async function getDatabaseTeams() {
+  try {
+    const res = await fetch('http://localhost:3000/api/teams', {
+      cache: 'no-store'
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Teams API hatası:', error);
+    return { success: false, teams: [] };
+  }
+}
+
+export default async function Home() {
+  const [footballData, dbTeams] = await Promise.all([
+    getLeagues(),
+    getDatabaseTeams()
+  ]);
+
+  return (
+    <main style={{ padding: '20px', fontFamily: 'Arial' }}>
+      <h1>⚽ Football App - LIVE DATA</h1>
+      <p>Working with real API-Football data!</p>
+      
+      <h2>🇹🇷 Turkey Leagues:</h2>
+      
+      {footballData.success && footballData.ligler && footballData.ligler.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
+          {footballData.ligler.map((lig, index) => (
+            <div key={index} style={{ 
+              border: '1px solid #ddd', 
+              padding: '15px', 
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9'
+            }}>
+              <h3>🏆 {lig.league?.name || 'Unknown League'}</h3>
+              <p><strong>Season:</strong> {lig.seasons?.[0]?.year || 'Unknown'}</p>
+              <p><strong>Start:</strong> {lig.seasons?.[0]?.start || 'Unknown'}</p>
+              <p><strong>End:</strong> {lig.seasons?.[0]?.end || 'Unknown'}</p>
+              {lig.league?.logo && (
+                <img 
+                  src={lig.league.logo} 
+                  alt={lig.league.name}
+                  style={{ width: '50px', height: '50px' }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>
+          <p>❌ API connection error or no leagues found.</p>
+          <div style={{ marginTop: '10px' }}>
+            <Link href="/api/football/ligler" style={{ color: 'blue', textDecoration: 'none' }}>
+              🔄 Retry Leagues API
+            </Link>
+          </div>
+        </div>
+      )}
+      
+      <hr style={{ margin: '30px 0' }} />
+      
+      <h2>🗄️ Database Teams:</h2>
+      
+      {dbTeams.success && dbTeams.teams && dbTeams.teams.length > 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
+          {dbTeams.teams.map(team => (
+            <div key={team.id} style={{ 
+              border: '1px solid #ddd', 
+              padding: '15px', 
+              borderRadius: '8px',
+              backgroundColor: '#f0f8ff'
+            }}>
+              <h3>🏟️ {team.name}</h3>
+              <p><strong>Country:</strong> {team.country}</p>
+              <p><strong>Founded:</strong> {team.founded_year}</p>
+              {team.stadium && <p><strong>Stadium:</strong> {team.stadium}</p>}
+              {team.manager && <p><strong>Manager:</strong> {team.manager}</p>}
+              {team.league && <p><strong>League:</strong> {team.league}</p>}
+              <Link href={`/api/teams/${team.id}`} style={{ color: 'blue', textDecoration: 'none' }}>
+                🔍 View Details →
+              </Link>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>
+          <p>❌ Database connection error or no teams added yet.</p>
+          <div style={{ marginTop: '10px' }}>
+            <Link href="/api/football/countries" style={{ color: 'green', textDecoration: 'none' }}>
+              🌍 Load Countries
+            </Link>
+            <span style={{ margin: '0 10px' }}>|</span>
+            <Link href="/api/teams" style={{ color: 'purple', textDecoration: 'none' }}>
+              🏟️ View Teams API
+            </Link>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+Ekleniyor: app/debug/page.js
+
+========================================
+DOSYA: app/debug/page.js
+Boyut: 9 satır
+========================================
+
+// app/debug/page.tsx
+export default function DebugPage() {
+  return (
+    <div>
+      <h2>Environment Variables:</h2>
+      <p>API URL: {process.env.NEXT_PUBLIC_API_URL || 'Not set'}</p>
+      <p>Database: {process.env.DATABASE_URL ? 'Set' : 'Not set'}</p>
+    </div>
+  );
+}
+Ekleniyor: lib/db.js
+
+========================================
+DOSYA: lib/db.js
+Boyut: 67 satır
+========================================
+
+import { Pool } from 'pg';
+
+class DatabaseManager {
+  constructor() {
+    this.pool = this.createPool();
+    console.log(`🗄️ Database connected: ${this.getDatabaseInfo()}`);
+  }
+
+  createPool() {
+    // PRODUCTION: Neon.tech (DATABASE_URL)
+    if (process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+      console.log('☁️ Using Neon.tech PostgreSQL (Production)');
+      return new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+        max: 20, // Production connection limit
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      });
+    }
+    
+    // DEVELOPMENT: Local Docker PostgreSQL
+    console.log('🐳 Using Local Docker PostgreSQL (Development)');
+    return new Pool({
+      user: process.env.DB_USER || 'postgres',
+      host: process.env.DB_HOST || 'football-app-db-1',
+      database: process.env.DB_NAME || 'football',
+      password: process.env.DB_PASSWORD || 'mysecretpassword',
+      port: parseInt(process.env.DB_PORT) || 5432,
+      max: 10, // Development connection limit
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
+  }
+
+  getDatabaseInfo() {
+    if (process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+      const url = new URL(process.env.DATABASE_URL);
+      return `Neon.tech (${url.hostname})`;
+    }
+    return `Local Docker (${process.env.DB_HOST}:${process.env.DB_PORT})`;
+  }
+
+  async query(text, params) {
+    const start = Date.now();
+    try {
+      const result = await this.pool.query(text, params);
+      const duration = Date.now() - start;
+      
+      if (process.env.DEBUG === 'true') {
+        console.log(`📊 Executed query in ${duration}ms:`, { text, params });
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Database query error:', error);
+      throw error;
+    }
+  }
+
+  async connect() {
+    return await this.pool.connect();
+  }
+}
+
+// Singleton instance
+const db = new DatabaseManager();
+export default db;
+Ekleniyor: database/setup.sql
+
+========================================
+DOSYA: database/setup.sql
+Boyut: 52 satır
+========================================
+
+-- Football App Database Setup - English Schema
+-- =============================================
+
+-- Drop existing table if needed
+DROP TABLE IF EXISTS teams CASCADE;
+
+-- Create teams table (English) with UNIQUE constraint
+CREATE TABLE teams (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,  -- 👈 UNIQUE EKLENDİ
+    country VARCHAR(50),
+    founded_year INTEGER,
+    logo_url TEXT,
+    stadium VARCHAR(100),
+    manager VARCHAR(100),
+    league VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert sample teams data (NOW WITH UNIQUE CONSTRAINT)
+INSERT INTO teams (name, country, founded_year, stadium, manager, league) VALUES 
+('Galatasaray', 'Turkey', 1905, 'Rams Park', 'Okan Buruk', 'Super Lig'),
+('Fenerbahçe', 'Turkey', 1907, 'Ülker Stadium', 'İsmail Kartal', 'Super Lig'),
+('Beşiktaş', 'Turkey', 1903, 'Vodafone Park', 'Fernando Santos', 'Super Lig'),
+('Trabzonspor', 'Turkey', 1967, 'Şenol Güneş Stadium', 'Abdullah Avcı', 'Super Lig'),
+('Manchester City', 'England', 1880, 'Etihad Stadium', 'Pep Guardiola', 'Premier League'),
+('Barcelona', 'Spain', 1899, 'Camp Nou', 'Xavi Hernández', 'La Liga'),
+('Real Madrid', 'Spain', 1902, 'Santiago Bernabéu', 'Carlo Ancelotti', 'La Liga'),
+('Bayern Munich', 'Germany', 1900, 'Allianz Arena', 'Thomas Tuchel', 'Bundesliga'),
+('Paris Saint-Germain', 'France', 1970, 'Parc des Princes', 'Luis Enrique', 'Ligue 1'),
+('Juventus', 'Italy', 1897, 'Allianz Stadium', 'Massimiliano Allegri', 'Serie A')
+ON CONFLICT (name) DO NOTHING;
+
+-- Create update trigger for teams
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Drop trigger if exists and recreate
+DROP TRIGGER IF EXISTS update_teams_updated_at ON teams;
+CREATE TRIGGER update_teams_updated_at 
+BEFORE UPDATE ON teams 
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Verification queries
+SELECT '✅ Database setup completed successfully!' as message;
+SELECT '📊 Total teams:' as info, COUNT(*) as count FROM teams;
+SELECT '🏆 Sample teams:' as info, name, country FROM teams ORDER BY name LIMIT 5;
+Ekleniyor: scripts/update-countries.js
+
+========================================
+DOSYA: scripts/update-countries.js
+Boyut: 77 satır
+========================================
+
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'football',
+  password: process.env.DB_PASSWORD || 'mysecretpassword',
+  port: parseInt(process.env.DB_PORT) || 5432,
+});
+
+
+async function updateCountries() {
+  console.log(`🔄 [${new Date().toISOString()}] Countries güncelleme başlıyor...`);
+  console.log(`🔗 Script database: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
+  // console.log(`📍 Database host: ${dbHost}:${pool.options.port}`);
+  
+  const options = {
+    method: 'GET',
+    headers: {
+      'X-RapidAPI-Key': process.env.API_FOOTBALL_KEY,
+      'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+    }
+  };
+
+  try {
+    const response = await fetch('https://api-football-v1.p.rapidapi.com/v3/countries', options);
+    
+    if (!response.ok) {
+      throw new Error(`API hatası: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    console.log(`📊 API'den ${data.response?.length || 0} ülke alındı`);
+    
+    const client = await pool.connect();
+    
+    let inserted = 0;
+    let updated = 0;
+    
+    for (const country of data.response || []) {
+      if (!country.code) continue;
+      
+      const result = await client.query(`
+        INSERT INTO countries (name, code, flag_url) 
+        VALUES ($1, $2, $3)
+        ON CONFLICT (code) 
+        DO UPDATE SET 
+          name = EXCLUDED.name,
+          flag_url = EXCLUDED.flag_url
+        RETURNING xmax::text::int
+      `, [country.name, country.code, country.flag]);
+      
+      if (result.rows[0].xmax === 0) {
+        inserted++;
+      } else {
+        updated++;
+      }
+    }
+    
+    client.release();
+
+    console.log(`✅ [${new Date().toISOString()}] ${inserted} yeni eklendi, ${updated} güncellendi`);
+    
+  } catch (error) {
+    console.error(`❌ [${new Date().toISOString()}] Hata:`, error.message);
+  } finally {
+    await pool.end();
+  }
+}
+
+// Script doğrudan çalıştırılıyorsa
+if (require.main === module) {
+  updateCountries();
+}
+
+module.exports = updateCountries;
+
+=== APP DİZİNİ ROUTE.JS DOSYALARI ===
+Ekleniyor: app/api/teams/[id]/route.js
+
+========================================
+DOSYA: app/api/teams/[id]/route.js
+Boyut: 36 satır
+========================================
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 
+    `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD || 'mysecretpassword'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'football'}`,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+export async function GET(request, { params }) {
+  try {
+    const { id } = params;
+    console.log(`🔍 Fetching team with ID: ${id}`);
+    
+    const result = await pool.query(
+      'SELECT * FROM teams WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return Response.json({
+        success: false,
+        error: 'Team not found'
+      }, { status: 404 });
+    }
+
+    return Response.json({
+      success: true,
+      team: result.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Database error:', error.message);
+    return Response.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
+  }
+}
+Ekleniyor: app/api/teams/route.js
+
+========================================
+DOSYA: app/api/teams/route.js
+Boyut: 31 satır
+========================================
+
+import { Pool } from 'pg';
+
+// Database connection - both production and development
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 
+    `postgresql://${process.env.DB_USER || 'postgres'}:${process.env.DB_PASSWORD || 'mysecretpassword'}@${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME || 'football'}`,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+export async function GET() {
+  try {
+    console.log('🔍 Fetching teams from database...');
+    
+    const result = await pool.query(`
+      SELECT * FROM teams 
+      ORDER BY name
+    `);
+    
+    console.log(`✅ Found ${result.rows.length} teams`);
+    
+    return Response.json({
+      success: true,
+      teams: result.rows
+    });
+  } catch (error) {
+    console.error('❌ Database error:', error.message);
+    return Response.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
+  }
+}
+Ekleniyor: app/api/takimlar/[id]/route.js
+
+========================================
+DOSYA: app/api/takimlar/[id]/route.js
+Boyut: 44 satır
+========================================
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  user: 'postgres',
+  host: 'football-db',
+  database: 'football',
+  password: 'mysecretpassword',
+  port: 5432,
+});
+
+export async function GET(request, { params }) {
+  try {
+    const { id } = params;
+    const client = await pool.connect();
+    
+    const result = await client.query(`
+      SELECT 
+        dt.*,
+        l.ad as lig_adi,
+        l.ulke as lig_ulkesi
+      FROM detayli_takimlar dt
+      LEFT JOIN ligler l ON dt.lig_id = l.id
+      WHERE dt.id = $1
+    `, [id]);
+    
+    client.release();
+
+    if (result.rows.length === 0) {
+      return Response.json({ 
+        success: false,
+        error: 'Takım bulunamadı' 
+      }, { status: 404 });
+    }
+
+    return Response.json({ 
+      success: true,
+      takim: result.rows[0]
+    });
+  } catch (error) {
+    return Response.json({ 
+      success: false,
+      error: error.message 
+    }, { status: 500 });
+  }
+}
+Ekleniyor: app/api/takimlar/route.js
+
+========================================
+DOSYA: app/api/takimlar/route.js
+Boyut: 26 satır
+========================================
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  user: 'postgres',
+  host: 'football-app-db-1',
+  database: 'football',
+  password: 'mysecretpassword',
+  port: 5432,
+});
+
+export async function GET() {
+  try {
+    const client = await pool.connect();
+    const result = await client.query('SELECT * FROM takimlar');
+    client.release();
+    
+    return Response.json({ 
+      success: true,
+      takimlar: result.rows 
+    });
+  } catch (error) {
+    return Response.json({ 
+      success: false,
+      error: error.message 
+    }, { status: 500 });
+  }
+}
+Ekleniyor: app/api/hello/route.js
+
+========================================
+DOSYA: app/api/hello/route.js
+Boyut: 5 satır
+========================================
+
+export async function GET() {
+  return Response.json({ 
+    message: 'Merhaba Football API!',
+    timestamp: new Date().toISOString()
+  });
+}
+Ekleniyor: app/api/cron/update-countries/route.js
+
+========================================
+DOSYA: app/api/cron/update-countries/route.js
+Boyut: 56 satır
+========================================
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+export async function GET(request) {
+  // Cron secret kontrolü (Vercel cron'ları için)
+  const authHeader = request.headers.get('Authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const options = {
+    method: 'GET',
+    headers: {
+      'X-RapidAPI-Key': process.env.API_FOOTBALL_KEY,
+      'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+    }
+  };
+
+  try {
+    const response = await fetch('https://api-football-v1.p.rapidapi.com/v3/countries', options);
+    const data = await response.json();
+    
+    const client = await pool.connect();
+    let inserted = 0;
+    let updated = 0;
+    
+    for (const country of data.response) {
+      if (!country.code) continue;
+      
+      const result = await client.query(`
+        INSERT INTO countries (name, code, flag_url) 
+        VALUES ($1, $2, $3)
+        ON CONFLICT (code) 
+        DO UPDATE SET 
+          name = EXCLUDED.name,
+          flag_url = EXCLUDED.flag_url
+        RETURNING xmax::text::int
+      `, [country.name, country.code, country.flag]);
+      
+      if (result.rows[0].xmax === 0) inserted++;
+      else updated++;
+    }
+    
+    client.release();
+
+    return Response.json({
+      success: true,
+      message: `${inserted} yeni ülke eklendi, ${updated} ülke güncellendi`
+    });
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
+Ekleniyor: app/api/football/ligler/route.js
+
+========================================
+DOSYA: app/api/football/ligler/route.js
+Boyut: 35 satır
+========================================
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+export async function GET() {
+  const currentYear = new Date().getFullYear();
+  const options = {
+    method: 'GET',
+    headers: {
+      'X-RapidAPI-Key': process.env.API_FOOTBALL_KEY,
+      'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+    }
+  };
+
+  try {
+    const response = await fetch(
+      `https://api-football-v1.p.rapidapi.com/v3/leagues?country=Turkey&season=${currentYear}`, 
+      options
+    );
+    const data = await response.json();
+
+    return Response.json({
+      success: true,
+      ligler: data.response || [],
+      season: currentYear
+    });
+  } catch (error) {
+    return Response.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
+  }
+}
+Ekleniyor: app/api/football/countries/route.js
+
+========================================
+DOSYA: app/api/football/countries/route.js
+Boyut: 60 satır
+========================================
+
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+export async function GET() {
+  const options = {
+    method: 'GET',
+    headers: {
+      'X-RapidAPI-Key': process.env.API_FOOTBALL_KEY,
+      'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+    }
+  };
+
+  try {
+    // API'den ülkeleri çek
+    const response = await fetch('https://api-football-v1.p.rapidapi.com/v3/countries', options);
+    const data = await response.json();
+    
+    const client = await pool.connect();
+    
+    let inserted = 0;
+    let updated = 0;
+    
+    // Her ülkeyi veritabanına kaydet
+    for (const country of data.response) {
+      if (!country.code) continue;
+      
+      const result = await client.query(`
+        INSERT INTO countries (name, code, flag_url) 
+        VALUES ($1, $2, $3)
+        ON CONFLICT (code) 
+        DO UPDATE SET 
+          name = EXCLUDED.name,
+          flag_url = EXCLUDED.flag_url
+        RETURNING xmax::text::int
+      `, [country.name, country.code, country.flag]);
+      
+      if (result.rows[0].xmax === 0) {
+        inserted++;
+      } else {
+        updated++;
+      }
+    }
+    
+    client.release();
+
+    return Response.json({
+      success: true,
+      message: `${inserted} yeni ülke eklendi, ${updated} ülke güncellendi`,
+      count: inserted + updated
+    });
+  } catch (error) {
+    return Response.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
+  }
+}
+
+=== COMPONENTS DİZİNİ DOSYALARI ===
+
+=== CRON-JOB DİZİNİ DOSYALARI ===
+
+=== DİĞER ÖNEMLİ DOSYALAR ===
+Ekleniyor: .vercel/project.json
+
+========================================
+DOSYA: ./.vercel/project.json
+Boyut: 0 satır
+========================================
+
+{"projectId":"prj_fq4TKBc3HrsClLsyNoXexlpqHJwd","orgId":"team_lSi7pOAAIzx5T6ilSeYvBUes","projectName":"football-app"}
+Ekleniyor: .vercel/README.txt
+
+========================================
+DOSYA: ./.vercel/README.txt
+Boyut: 11 satır
+========================================
+
+> Why do I have a folder named ".vercel" in my project?
+The ".vercel" folder is created when you link a directory to a Vercel project.
+
+> What does the "project.json" file contain?
+The "project.json" file contains:
+- The ID of the Vercel project that you linked ("projectId")
+- The ID of the user or team your Vercel project is owned by ("orgId")
+
+> Should I commit the ".vercel" folder?
+No, you should not share the ".vercel" folder with anyone.
+Upon creation, it will be automatically added to your ".gitignore" file.
+
+Ekleniyor: proje_icerikleri.txt
+
+========================================
+DOSYA: ./proje_icerikleri.txt
+Boyut: 1278 satır
+========================================
+
+
+Ekleniyor: jsconfig.json
+
+========================================
+DOSYA: ./jsconfig.json
+Boyut: 8 satır
+========================================
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+
+Ekleniyor: project_writer_next.sh
+
+========================================
+DOSYA: ./project_writer_next.sh
+Boyut: 164 satır
+========================================
+
+#!/bin/bash
+
+# Çıktı dosyası
+OUTPUT_FILE="proje_icerikleri.txt"
+
+echo "=== PROJE DOSYALARI İÇERİKLERİ ===" > "$OUTPUT_FILE"
+echo "Oluşturma Tarihi: $(date)" >> "$OUTPUT_FILE"
+echo "=====================================" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+# Hariç tutulacak dizinler ve dosyalar
+EXCLUDE_DIRS="no_git node_modules .next"
+EXCLUDE_FILES=".env .env.local .env.development .env.production package-lock.json"
+
+echo "Hariç tutulan dizinler: $EXCLUDE_DIRS" >> "$OUTPUT_FILE"
+echo "Hariç tutulan dosyalar: $EXCLUDE_FILES" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+# Dosya ekleme fonksiyonu
+add_file() {
+    local file="$1"
+    if [[ -f "$file" && -r "$file" ]]; then
+        echo "" >> "$OUTPUT_FILE"
+        echo "========================================" >> "$OUTPUT_FILE"
+        echo "DOSYA: $file" >> "$OUTPUT_FILE"
+        echo "Boyut: $(wc -l < "$file") satır" >> "$OUTPUT_FILE"
+        echo "========================================" >> "$OUTPUT_FILE"
+        echo "" >> "$OUTPUT_FILE"
+        
+        # JSON dosyalarını formatlı göster (eğer jq varsa)
+        if [[ "$file" == *.json ]] && command -v jq &> /dev/null; then
+            jq . "$file" 2>/dev/null >> "$OUTPUT_FILE" || cat "$file" >> "$OUTPUT_FILE"
+        else
+            cat "$file" >> "$OUTPUT_FILE"
+        fi
+        
+        echo "" >> "$OUTPUT_FILE"
+    fi
+}
+
+# Önemli dosya listesi
+important_files=(
+    # Kök dizin dosyaları
+    "next.config.js"
+    "vercel.json"
+    "package.json"
+    "README.md"
+    "LICENSE"
+    "docker-compose.yml"
+    "Dockerfile"
+    "dockerfile"
+    "jsonfig.json"
+    ".env.example"
+    "project_backup.txt"
+    
+    # App dizini
+    "app/layout.js"
+    "app/page.js"
+    "app/debug/page.js"
+    
+    # Lib dizini
+    "lib/db.js"
+    
+    # Database dizini
+    "database/setup.sql"
+    
+    # Scripts dizini
+    "scripts/update-countries.js"
+)
+
+echo "Önemli dosyalar işleniyor..." | tee -a "$OUTPUT_FILE"
+
+# Önemli dosyaları ekle
+for file in "${important_files[@]}"; do
+    if [[ -f "$file" ]]; then
+        echo "Ekleniyor: $file" | tee -a "$OUTPUT_FILE"
+        add_file "$file"
+    fi
+done
+
+# App dizinindeki route.js dosyalarını ekle (özyinelemeli)
+echo "" >> "$OUTPUT_FILE"
+echo "=== APP DİZİNİ ROUTE.JS DOSYALARI ===" >> "$OUTPUT_FILE"
+find app -name "route.js" -type f ! -path "*/.next/*" ! -path "*/node_modules/*" | while read -r file; do
+    echo "Ekleniyor: $file" | tee -a "$OUTPUT_FILE"
+    add_file "$file"
+done
+
+# Components dizinindeki dosyaları ekle
+echo "" >> "$OUTPUT_FILE"
+echo "=== COMPONENTS DİZİNİ DOSYALARI ===" >> "$OUTPUT_FILE"
+if [[ -d "components" ]]; then
+    find components -type f \( -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" \) \
+        ! -path "*/.next/*" ! -path "*/node_modules/*" | while read -r file; do
+        echo "Ekleniyor: $file" | tee -a "$OUTPUT_FILE"
+        add_file "$file"
+    done
+fi
+
+# Cron-job dizinindeki dosyaları ekle
+echo "" >> "$OUTPUT_FILE"
+echo "=== CRON-JOB DİZİNİ DOSYALARI ===" >> "$OUTPUT_FILE"
+if [[ -d "cron-job" ]]; then
+    find cron-job -type f \( -name "*.js" -o -name "*.py" -o -name "*.sh" \) \
+        ! -path "*/.next/*" ! -path "*/node_modules/*" | while read -r file; do
+        echo "Ekleniyor: $file" | tee -a "$OUTPUT_FILE"
+        add_file "$file"
+    done
+fi
+
+# Diğer tüm önemli dosyaları bul ve ekle (özyinelemeli)
+echo "" >> "$OUTPUT_FILE"
+echo "=== DİĞER ÖNEMLİ DOSYALAR ===" >> "$OUTPUT_FILE"
+find . -type f \( \
+    -name "*.js" -o \
+    -name "*.jsx" -o \
+    -name "*.ts" -o \
+    -name "*.tsx" -o \
+    -name "*.json" ! -name "package-lock.json" -o \
+    -name "*.md" -o \
+    -name "*.txt" -o \
+    -name "*.sql" -o \
+    -name "*.yml" -o \
+    -name "*.yaml" -o \
+    -name "*.sh" -o \
+    -name "*.config.js" -o \
+    -name "*.config.ts" -o \
+    -name "Dockerfile" -o \
+    -name "dockerfile" -o \
+    -name "docker-compose.yml" \
+    \) \
+    ! -path "./no_git/*" \
+    ! -path "./node_modules/*" \
+    ! -path "*/.next/*" \
+    ! -name ".env" \
+    ! -name ".env.local" \
+    ! -name ".env.development" \
+    ! -name ".env.production" \
+    | grep -v "^./.next/" \
+    | while read -r file; do
+    
+    # Zaten eklenmiş dosyaları atla
+    already_added=false
+    for added_file in "${important_files[@]}"; do
+        if [[ "$file" == "./$added_file" ]] || [[ "$file" == "$added_file" ]]; then
+            already_added=true
+            break
+        fi
+    done
+    
+    if ! $already_added && [[ ! "$file" =~ ^./app/.*/route\.js$ ]] && [[ ! "$file" =~ ^./components/ ]] && [[ ! "$file" =~ ^./cron-job/ ]]; then
+        echo "Ekleniyor: ${file#./}" | tee -a "$OUTPUT_FILE"
+        add_file "$file"
+    fi
+done
+
+echo "" >> "$OUTPUT_FILE"
+echo "=== İŞLEM TAMAMLANDI ===" >> "$OUTPUT_FILE"
+echo "Toplam dosya sayısı: $(grep -c "DOSYA:" "$OUTPUT_FILE")" >> "$OUTPUT_FILE"
+echo "Çıktı dosyası: $OUTPUT_FILE ($(wc -l < "$OUTPUT_FILE") satır)" >> "$OUTPUT_FILE"
+
+echo ""
+echo "✓ İşlem tamamlandı!"
+echo "✓ Çıktı dosyası: $OUTPUT_FILE"
+echo "✓ Hariç tutulanlar: no_git, node_modules, .next, .env*, package-lock.json"
+
+=== İŞLEM TAMAMLANDI ===
+Toplam dosya sayısı: 29
+Çıktı dosyası: proje_icerikleri.txt (1473 satır)
